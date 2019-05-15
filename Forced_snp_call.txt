@@ -1,0 +1,50 @@
+=================================================================================================
+## force snp call in 4C.9 and 4E separately using an input vcf file ##
+1. make input vcf file
+	--input file for 4E includes all scaffolds that contains SNP in 4C.9 but is absent in 4E
+	--input file for 4C.9 include all scaffold that contains SNP in 4E but is absent in 4C.9
+
+vcftools --vcf /data/GBS_Xu/qtl4cgbs/4c.9_snp/4c.9_ril9_lklp_snp_mnc6_retry_2_miss20_maf0.025_mindp5_hardfil.vcf --chr Lko051S005326 --chr Lko051S004295 --chr Lko051S000691 --chr Lko051S006407 --chr Lko051S005269 --chr Lko051S001059 --chr Lko051S006896 --chr Lko051S003785 --chr Lko051S006807 --chr Lko051S001756 --chr Lko051S009810 --chr Lko051S002190 --chr Lko051S003842 --chr Lko051S001065 --chr Lko051S003702 --chr Lko051S000039 --chr Lko051S000951 --chr Lko051S000809 --chr Lko051S005960 --chr Lko051S011424 --chr Lko051S000417 --chr Lko051S002808 --chr Lko051S000562 --chr Lko051S001650 --chr Lko051S003200 --chr Lko051S000683 --chr Lko051S000430 --chr Lko051S000472 --chr Lko051S002143 --chr Lko051S001404 --chr Lko051S000820 --chr Lko051S000272 --chr Lko051S002944 --chr Lko051S004683 --chr Lko051S002445 --chr Lko051S002565 --chr Lko051S001239 --chr Lko051S003497 --chr Lko051S001371 --chr Lko051S006506 --chr Lko051S000353 --chr Lko051S000933 --chr Lko051S001839 --chr Lko051S001044 --chr Lko051S005519 --chr Lko051S000305 --chr Lko051S004564 --chr Lko051S001042 --chr Lko051S001129 --chr Lko051S000180 --chr Lko051S000091 --chr Lko051S000478 --chr Lko051S004669 --chr Lko051S005334 --chr Lko051S003838 --chr Lko051S003802 --chr Lko051S001166 --chr Lko051S001719 --chr Lko051S000166 --chr Lko051S001441 --chr Lko051S005338 --chr Lko051S001871 --chr Lko051S002703 --chr Lko051S003304 --chr Lko051S014061 --chr Lko051S000089 --chr Lko051S001870 --recode --recode-INFO-all --out /data/GBS_Xu/qtl4cgbs/4c.9_snp/4c.9_ril9_lklp_snp_mnc6_retry_2_miss20_maf0.025_mindp5_hardfil_lg5_scaffolds.vcf
+After filtering, kept 436 out of 436 Individuals
+Outputting VCF file...
+After filtering, kept 237 out of a possible 4645 Sites
+
+vcftools --vcf /data/GBS_Xu/qtl4egbs/4e_SNP/4e_f2_lklp_ril8_G11retry_c6_miss20_maf0.025_mndp5_hardfil.vcf --chr Lko051S005326 --chr Lko051S005269 --chr Lko051S006896 --chr Lko051S006807 --chr Lko051S001650 --chr Lko051S001239 --chr Lko051S001371 --chr Lko051S000353 --chr Lko051S000933 --chr Lko051S001044 --chr Lko051S005519 --chr Lko051S000305 --chr Lko051S004564 --chr Lko051S001042 --chr Lko051S000091 --chr Lko051S005334 --chr Lko051S003838 --recode --recode-INFO-all --out /data/GBS_Xu/qtl4egbs/4e_SNP/4e_f2_lklp_ril8_G11retry_c6_miss20_maf0.025_mndp5_hardfil_lg5_scaffolds.vcf
+After filtering, kept 192 out of 192 Individuals
+Outputting VCF file...
+After filtering, kept 51 out of a possible 2859 Sites
+
+2. senitize input vcf files
+cut -f -7 /data/GBS_Xu/qtl4cgbs/4c.9_snp/4c.9_ril9_lklp_snp_mnc6_retry_2_miss20_maf0.025_mindp5_hardfil_lg5_scaffolds.vcf | bgzip > /data/GBS_Xu/qtl4cgbs/4c.9_snp/4c.9_ril9_lklp_snp_mnc6_retry_2_miss20_maf0.025_mindp5_hardfil_lg5_scaffolds_sanitized.vcf.gz
+tabix -p vcf /data/GBS_Xu/qtl4cgbs/4c.9_snp/4c.9_ril9_lklp_snp_mnc6_retry_2_miss20_maf0.025_mindp5_hardfil_lg5_scaffolds_sanitized.vcf.gz
+
+cut -f -7 /data/GBS_Xu/qtl4egbs/4e_SNP/4e_f2_lklp_ril8_G11retry_c6_miss20_maf0.025_mndp5_hardfil_lg5_scaffolds.vcf > /data/GBS_Xu/qtl4egbs/4e_SNP/4e_f2_lklp_ril8_G11retry_c6_miss20_maf0.025_mndp5_hardfil_lg5_scaffolds_sanitized.vcf
+tabix -p vcf /data/GBS_Xu/qtl4egbs/4e_SNP/4e_f2_lklp_ril8_G11retry_c6_miss20_maf0.025_mndp5_hardfil_lg5_scaffolds_sanitized.vcf
+
+3. make merged bam files for force call
+For this, I used F2 of 4C.9 or 4E 
+	+ 3 RIL9 (qtl4plate11_C03-C05)
+	+ 2 RIL8 (qtl4plate11_C07-C08)
+	+ 5 Lk (qtl4plate11_D08-D12)
+	+ 5 Lp (qtl4plate11_F02-F06)
+
+chmod 755 /data/GBS_Xu/qtl4cgbs/excutable_script/4c.9_for_force_call_bamaddrg.sh
+/data/GBS_Xu/qtl4cgbs/excutable_script/4c.9_for_force_call_bamaddrg.sh
+
+chmod 755 /data/GBS_Xu/qtl4egbs/excutable_script/4e_for_force_call_bamadddrg.sh
+/data/GBS_Xu/qtl4egbs/excutable_script/4e_for_force_call_bamadddrg.sh
+
+samtools sort /data/GBS_Xu/qtl4cgbs/4c.9_ril9_lklp_mapped/4c.9_for_force_call.bam -o /data/GBS_Xu/qtl4cgbs/4c.9_ril9_lklp_mapped/4c.9_for_force_call_sorted.bam
+samtools sort /data/GBS_Xu/qtl4egbs/4e_mapped/4e_for_force_call.bam -o /data/GBS_Xu/qtl4egbs/4e_mapped/4e_for_force_call_sorted.bam
+
+4. call SNP in 4C.9 and 4e separately using SNP list from the other family
+freebayes -b /data/GBS_Xu/qtl4egbs/4e_mapped/4e_for_force_call_sorted.bam -@ /data/GBS_Xu/qtl4cgbs/4c.9_snp/4c.9_ril9_lklp_snp_mnc6_retry_2_miss20_maf0.025_mindp5_hardfil_lg5_scaffolds_sanitized.vcf.gz --only-use-input-alleles --min-alternate-count 0 --min-alternate-fraction 0 --min-coverage 0 -f /data/bowtieindexes/Lakoh051scf.fa -v /data/GBS_Xu/qtl4egbs/4e_SNP/4e_snp_force_call.vcf
+
+freebayes -b /data/GBS_Xu/qtl4cgbs/4c.9_ril9_lklp_mapped/4c.9_for_force_call_sorted.bam -@ /data/GBS_Xu/qtl4egbs/4e_SNP/4e_f2_lklp_ril8_G11retry_c6_miss20_maf0.025_mndp5_hardfil_lg5_scaffolds_sanitized.vcf.gz --only-use-input-alleles --min-alternate-count 0 --min-alternate-fraction 0 --min-coverage 0 -f /data/bowtieindexes/Lakoh051scf.fa -v /data/GBS_Xu/qtl4cgbs/4c.9_snp/4c.9_snp_force_call.vcf
+
+5. filter SNPs
+vcftools --vcf /data/GBS_Xu/qtl4egbs/4e_SNP/4e_snp_force_call.vcf --remove-indels --min-alleles 2 --max-alleles 2 --minDP 5 --recode --recode-INFO-all --out /data/GBS_Xu/qtl4egbs/4e_SNP/4e_snp_force_call_mindp5.vcf
+/data/software/vcflib/bin/vcffilter -f "QUAL > 30 & SAP > 0.0001 & SRP > 0.0001" /data/GBS_Xu/qtl4egbs/4e_SNP/4e_snp_force_call_mindp5.vcf > /data/GBS_Xu/qtl4egbs/4e_SNP/4e_snp_force_call_mindp5_hardfil.vcf
+
+vcftools --vcf /data/GBS_Xu/qtl4cgbs/4c.9_snp/4c.9_snp_force_call.vcf --remove-indels --min-alleles 2 --max-alleles 2 --minDP 5 --recode --recode-INFO-all --out /data/GBS_Xu/qtl4cgbs/4c.9_snp/4c.9_snp_force_call_mindp5.vcf
+/data/software/vcflib/bin/vcffilter -f "QUAL > 30 & SAP > 0.0001 & SRP > 0.0001" /data/GBS_Xu/qtl4cgbs/4c.9_snp/4c.9_snp_force_call_mindp5.vcf > /data/GBS_Xu/qtl4cgbs/4c.9_snp/4c.9_snp_force_call_mindp5_hardfil.vcf
