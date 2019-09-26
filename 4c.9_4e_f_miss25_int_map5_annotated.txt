@@ -1,0 +1,88 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1671\cocoasubrtf600
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;\csgray\c0\c0;}
+\margl1440\margr1440\vieww13940\viewh12560\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf2 > library(qtl)\
+## import data and check imported data ##\
+> qtl4f.int.25<-read.cross(format="csv",file="4c.9_4e_f_miss25_int_map5_qtl.csv")\
+ --Read the following data:\
+	 71  individuals\
+	 75  markers\
+	 5  phenotypes\
+ --Cross type: f2 \
+> \
+## calculate genotype probability and simulate genotype for missing data ##\
+> qtl4f.int.gp<-calc.genoprob(qtl4f.int.25,step=0.2,error.prob=0.001)\
+> qtl4f.int.sim<-sim.geno(qtl4f.int.gp,step=0.2,n.draw=10000,map.function=c("kosambi"),err=0.001)\
+\
+===========================================\
+## test if there is a family effect on phenotype distribution ##\
+## depends on theist results, the models below will either include or not include family as a covariate ##\
+> f<-read.table(file="int_f_pheno.csv",sep=",",header=T)\
+> str(f)\
+> f$fam<-as.factor(f$fam)\
+> t.test(f$pheno~f$fam)\
+\
+> qtl4f.int.25$pheno$fam<-as.factor(qtl4f.int.25$pheno$fam)\
+> t.test(qtl4f.int.25$pheno$pheno~qtl4f.int.25$pheno$fam)\
+\
+========================================= \
+## run one qtl model with family as a covariate ##\
+> qtl4f.int.imp.cov<-scanone(qtl4f.int.sim,method="imp",addcovar=qtl4f.int.25$pheno$fam)\
+> summary(qtl4f.int.imp.cov)\
+\
+===========================================\
+## run multiple qtl model (MQM) with family as a covariate ##\
+## here, family has to be defined as a numeric data frame ##\
+> fam<-pull.pheno(qtl4f.int.25,"fam")\
+> fam<-data.frame(fam)\
+\
+## use the location with the highest LOD score in one qtl model as the initial position for MQM ##\
+> qtl4f.int.make1<-makeqtl(qtl4f.int.sim,chr=5,pos=26.4)\
+## calculate model output ##\
+> qtl4f.int.fit.make1.cov<-fitqtl(qtl4f.int.sim,qtl=qtl4f.int.make1,covar=fam,formula=y~Q1+fam)\
+> summary(qtl4f.int.fit.make1.cov)\
+## refine peak position (i.e., obtain the position with the maximum likelihood, see Broman and Sen 2009, pp258)\
+> qtl4f.int.refine1.cov<-refineqtl(qtl4f.int.sim,qtl=qtl4f.int.make1,covar=fam,method="imp",formula=y~Q1+fam,verbose=FALSE)\
+> summary(qtl4f.int.refine1.cov)\
+> \
+## if the refined peak position is different from the initial location, refit the model ##\
+> qtl4f.int.fit.refine1.cov<-fitqtl(qtl4f.int.sim,qtl=qtl4f.int.refine1.cov,covar=fam,formula=y~Q1+fam)\
+> summary(qtl4f.int.fit.refine1.cov)\
+\
+## check if there is indication of any additional qtl ##\
+> qtl4f.int.add1<-addqtl(qtl4f.int.sim,qtl=qtl4f.int.refine1.cov,covar=fam,formula=y~Q1+Q2+fam)\
+> summary(qtl4f.int.add1)\
+\
+ ==========================================\
+## calculate 1.5-LOD confidence interval ##\
+## the lodint commend has a default of 1.5 LOD ##\
+\cb3 > lodint(qtl4f.int.imp.cov)\
+> lodint(qtl4f.int.refine1.cov)\
+\cb1 \
+============================================\
+## calculate effect size at the marker with the highest LOD score ##\
+> qtl4f.int.eff.1371<-effectplot(qtl4f.int.sim,mname1="S001371_680831",draw=FALSE)\
+> qtl4f.int.eff.1371\
+\
+## calculate effect size at the LOD peak position from the final MQM ##\
+> qtl4f.int.refine1.eff<-fitqtl(qtl4f.int.sim,qtl=qtl4f.int.refine1.cov,covar=fam,formula=y~Q1+fam,dropone=FALSE,get.est=TRUE)\
+> summary(qtl4f.int.refine1.eff)\
+\
+========================================\
+## calculate linkage group-wide significant threshold for the one qtl model ##\
+> qtl4f.int.perm.02<-scanone(qtl4f.int.gp,n.perm=50000,verbose=FALSE)\
+> summary(qtl4f.int.perm.02)\
+\
+## calculate linkage group-wide significant threshold for the multiple qtl model ##\
+> qtl4f.int.perm2.02<-scantwo(qtl4f.int.sim,method="hk",n.perm=1000)\
+Doing permutation in batch mode ...\
+> summary(qtl4f.int.perm2.02)\
+> \
+## calculate penalty scores for including additional terms in the multiple qtl model ##\
+> qtl4f.int.pen.02<-calc.penalties(qtl4f.int.perm2.02)\
+> print(qtl4f.int.pen.02)\
+}
